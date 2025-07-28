@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧聯絡簿 v9.4</title>
+    <style>
+        /* CSS 與 v9.3 完全相同，僅新增創作者署名樣式 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        :root {
+            --primary-color: #0A84FF;
+            --secondary-color: #30D158;
+            --card-bg: rgba(28, 28, 30, 0.75); 
+            --card-border: rgba(255, 255, 255, 0.15); 
+            --text-color-primary: rgba(255, 255, 255, 0.95); 
+            --text-color-secondary: rgba(255, 255, 255, 0.6); 
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --control-border-radius: 12px;
+            --delete-color: #FF453A;
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; }
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            color: var(--text-color-primary);
+            -webkit-font-smoothing: antialiased;
+            background-image: url('1.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container { max-width: 700px; width: 100%; }
+        .main-header { text-align: center; margin-bottom: 25px; }
+        .main-title { font-size: 2.5em; font-weight: 700; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+        .card { background: var(--card-bg); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); border-radius: 24px; border: 1px solid var(--card-border); box-shadow: 0 15px 50px 0 var(--shadow-color); padding: 35px; animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .card-header { text-align: center; margin-bottom: 30px; padding-bottom: 25px; border-bottom: 1px solid var(--card-border); }
+        #date-selector { background: none; border: none; color: var(--text-color-primary); font-size: 2.2em; font-weight: 700; text-align: center; cursor: pointer; }
+        #date-selector::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; transform: scale(1.2); }
+        #week-display { font-size: 1.2em; font-weight: 500; color: var(--text-color-secondary); margin-top: 8px; }
+        .homework-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 15px; }
+        .homework-item { display: flex; align-items: center; gap: 15px; font-size: 1.2em; padding: 12px; border-radius: var(--control-border-radius); transition: background-color 0.2s; animation: itemFadeIn 0.5s ease forwards; }
+        @keyframes itemFadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .homework-item .item-content { flex-grow: 1; outline: none; }
+        .homework-item:hover, .homework-item:focus-within { background-color: rgba(0,0,0,0.2); }
+        .item-index { font-weight: 600; color: var(--text-color-secondary); }
+        #homework-input-area { display: flex; gap: 0; margin-top: 30px; background-color: var(--input-bg); border-radius: var(--control-border-radius); border: 1px solid rgba(255,255,255,0.1); transition: box-shadow 0.3s ease; }
+        #homework-input-area:focus-within { box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.3); }
+        #new-homework-input { flex-grow: 1; background: none; border: none; padding: 14px 18px; font-size: 1.1em; color: var(--text-color-primary); }
+        #new-homework-input:focus { outline: none; }
+        button { border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; border-radius: var(--control-border-radius) !important; padding: 14px 20px; }
+        #show-template-btn { background: none; color: var(--text-color-secondary); font-size: 1.5em; padding: 0 15px; }
+        #show-template-btn:hover { color: var(--text-color-primary); }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.15); color: var(--text-color-primary); }
+        .delete-item-btn { background: none; color: rgba(255,255,255,0.4); font-size: 1.4em; margin-left: auto; line-height: 1; opacity: 0; transition: all 0.2s; padding: 5px; }
+        .homework-item:hover .delete-item-btn { opacity: 1; }
+        .delete-item-btn:hover { color: var(--delete-color); transform: scale(1.1); }
+        .footer-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 30px; }
+        .footer-buttons button { font-size: 1.1em; padding: 15px 30px; flex-basis: 220px; text-align: center; }
+        #template-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 10; opacity: 0; transition: opacity 0.3s ease; }
+        #template-modal.visible { display: flex; opacity: 1; }
+        .template-card { padding: 30px; max-width: 800px; width: 90%; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        #template-modal.visible .template-card { transform: scale(1); }
+        .category-tabs { display: flex; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid var(--card-border); padding-bottom: 15px; margin-bottom: 20px; }
+        .tab-btn { background: rgba(0,0,0,0.2); color: var(--text-color-secondary); padding: 10px 15px; border-radius: 10px; font-weight: 600; }
+        .tab-btn.active { background: var(--primary-color); color: white; }
+        .templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; max-height: 45vh; overflow-y: auto; padding-right: 10px; }
+        .template-item { background: var(--input-bg); color: var(--text-color-primary); text-align: left; padding: 15px; border-radius: 10px; font-size: 1em; }
+        .template-item:hover { background: var(--primary-color); color: white; }
+        .presentation-mode #homework-input-area, .presentation-mode .delete-item-btn, .presentation-mode .footer-buttons, .presentation-mode #date-selector::-webkit-calendar-picker-indicator, .presentation-mode .main-header, .presentation-mode .creator-credit { display: none; }
+        .presentation-mode .item-content { pointer-events: none; }
+        .presentation-mode .homework-item:hover { background-color: transparent; }
+        
+        .creator-credit { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); background: var(--card-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--text-color-secondary); padding: 8px 16px; border-radius: var(--control-border-radius); border: 1px solid var(--card-border); font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.3s ease; z-index: 100; }
+        .creator-credit:hover { color: var(--text-color-primary); box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="main-header"><h1 class="main-title">智慧聯絡簿</h1></div>
+        <div class="card" id="main-card">
+            <div class="card-header"><input type="date" id="date-selector"><div id="week-display"></div></div>
+            <ul class="homework-list" id="homework-list"></ul>
+            <div id="homework-input-area"><input type="text" id="new-homework-input" placeholder="新增事項後按 Enter..."><button id="show-template-btn" class="btn-secondary" title="從範本加入">🪄</button></div>
+        </div>
+        <div class="footer-buttons">
+            <button id="toggle-presentation-btn" class="btn-secondary">全螢幕展示</button>
+            <button id="export-html-btn" class="btn-primary">匯出聯絡簿</button>
+        </div>
+    </div>
+
+    <div id="template-modal"><div class="card template-card"><h2>選擇作業範本</h2><div id="category-tabs" class="category-tabs"></div><div id="templates-grid" class="templates-grid"></div></div></div>
+
+    <a href="https://www.facebook.com/FunFun.AI.Teacher/" target="_blank" rel="noopener noreferrer" class="creator-credit">Created by 方方老師</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainCard = document.getElementById('main-card');
+            const dateSelector = document.getElementById('date-selector');
+            const weekDisplay = document.getElementById('week-display');
+            const homeworkList = document.getElementById('homework-list');
+            const newHomeworkInput = document.getElementById('new-homework-input');
+            const showTemplateBtn = document.getElementById('show-template-btn');
+            const exportHtmlBtn = document.getElementById('export-html-btn');
+            const togglePresentationBtn = document.getElementById('toggle-presentation-btn');
+            const templateModal = document.getElementById('template-modal');
+            const categoryTabs = document.getElementById('category-tabs');
+            const templatesGrid = document.getElementById('templates-grid');
+
+            let allData = {};
+            let currentDate = new Date().toISOString().slice(0, 10);
+            let isPresentationMode = false;
+
+            const templates = { "國語文": ["國習 L__", "國語習作 p.__-`__`", "甲本 p.__-`__`", "生字本 L__", "語詞本 L__", "國練 第__回", "圈詞 L__ 寫__遍", "背書 L__", "默書 L__", "日記", "閱讀心得"], "數學": ["數習 p.__-`__`", "數練 第__回", "數作 p.__-`__`", "計算練習本 p.__", "數卷訂簽", "應用題 x__"], "英語": ["英習 U__", "英聽", "單字 U__ 寫__遍", "背單字 U__", "句型練習 x__", "課文朗讀 U__"], "社會自然": ["社習 p.__-`__`", "自習 p.__-`__`", "社卷訂簽", "自卷訂簽", "學習單", "報告：__", "觀察紀錄：__"], "通用": ["考卷訂簽", "複習 L__-`__`", "預習 L__", "發回條", "帶__", "做家事", "運動30分鐘", "親子共讀"] };
+
+            const saveData = () => { allData[currentDate] = getCurrentItems(); localStorage.setItem('ultraContactBook_v9_4', JSON.stringify(allData)); };
+            const loadData = () => { const data = JSON.parse(localStorage.getItem('ultraContactBook_v9_4')); if (data) allData = data; loadDataForDate(currentDate); };
+            const loadDataForDate = (date) => { renderHomeworkList(allData[date] || []); };
+            const getCurrentItems = () => Array.from(homeworkList.querySelectorAll('.item-content')).map(el => el.textContent);
+            const updateDate = (dateString) => { const date = new Date(dateString + 'T00:00:00'); const week = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][date.getDay()]; weekDisplay.textContent = week; dateSelector.value = dateString; };
+
+            const renderHomeworkList = (items) => {
+                homeworkList.innerHTML = '';
+                if (items.length === 0) homeworkList.innerHTML = `<p style="text-align: center; color: var(--text-color-secondary);">點擊輸入框新增今日聯絡事項</p>`;
+                items.forEach((itemText, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'homework-item';
+                    li.innerHTML = `<span class="item-index">${index + 1}.</span><span class="item-content" contenteditable="true">${itemText}</span><button class="delete-item-btn" data-index="${index}">&times;</button>`;
+                    homeworkList.appendChild(li);
+                });
+            };
+
+            const addHomework = (text) => {
+                if (text.trim()) { let currentItems = getCurrentItems().filter(item => item.trim() !== ''); currentItems.push(text.trim()); renderHomeworkList(currentItems); saveData(); }
+                newHomeworkInput.value = '';
+            };
+            
+            const handleHomeworkListChanges = (e) => {
+                const target = e.target;
+                if (target.classList.contains('delete-item-btn')) { const index = parseInt(target.dataset.index, 10); let currentItems = getCurrentItems(); currentItems.splice(index, 1); renderHomeworkList(currentItems); saveData(); }
+                if (target.classList.contains('item-content')) { target.onblur = saveData; target.onkeydown = (event) => { if (event.key === 'Enter') { event.preventDefault(); target.blur(); } }; }
+            };
+
+            const togglePresentation = () => {
+                isPresentationMode = !isPresentationMode;
+                document.body.classList.toggle('presentation-mode');
+                togglePresentationBtn.textContent = isPresentationMode ? '返回編輯' : '全螢幕展示';
+                if (isPresentationMode) { document.documentElement.requestFullscreen?.(); } 
+                else { document.exitFullscreen?.(); }
+            };
+            
+            const exportHTML = () => {
+                const date = new Date(dateSelector.value + 'T00:00:00');
+                const timestamp = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
+                const filename = `聯絡簿_${timestamp}.html`;
+                const dateHTML = dateSelector.value.replace(/-/g, ' / ');
+                const weekHTML = weekDisplay.innerHTML;
+                let homeworkHTML = '';
+                getCurrentItems().forEach((item, index) => { if(item.trim()) homeworkHTML += `<li class="homework-item"><span class="item-index">${index + 1}.</span><span class="item-content">${item}</span></li>`; });
+                
+                // 【核心修改】將 JS 和更多樣式注入匯出的檔案
+                const exportedJs = `
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const btn = document.getElementById('fullscreen-btn');
+                            btn.addEventListener('click', () => {
+                                if (!document.fullscreenElement) {
+                                    document.documentElement.requestFullscreen?.();
+                                    btn.textContent = '結束全螢幕';
+                                } else {
+                                    document.exitFullscreen?.();
+                                    btn.textContent = '全螢幕展示';
+                                }
+                            });
+                        });
+                    <\/script>
+                `;
+                const exportedCss = document.querySelector('style').innerHTML
+                    .replace("url('1.png')", "radial-gradient(circle, #3c3c3c 0%, #1e1e1e 100%)")
+                    + `.exported-header{display:flex;justify-content:space-between;align-items:center;}.exported-btn{background:var(--primary-color);color:white;padding:10px 18px;border-radius:10px;border:none;font-size:1em;cursor:pointer;}`;
+
+                const htmlContent = `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>${filename}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"><style>${exportedCss}</style></head><body><div class="container"><div class="exported-header"><h1 class="main-title">智慧聯絡簿</h1><button id="fullscreen-btn" class="exported-btn">全螢幕展示</button></div><div class="card"><div class="card-header"><div id="date-display" style="font-size:2.2em;font-weight:700;">${dateHTML}</div><div id="week-display" style="font-size:1.2em;color:var(--text-color-secondary);">${weekHTML}</div></div><ul class="homework-list">${homeworkHTML}</ul></div></div>${exportedJs}</body></html>`;
+                
+                const link = document.createElement('a');
+                link.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent);
+                link.download = filename;
+                link.click();
+            };
+
+            const showTemplateModal = () => templateModal.classList.add('visible');
+            const hideTemplateModal = () => templateModal.classList.remove('visible');
+            const renderTemplatesForCategory = (category) => {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelector(`.tab-btn[data-category="${category}"]`).classList.add('active');
+                templatesGrid.innerHTML = '';
+                templates[category].forEach(templateText => {
+                    const item = document.createElement('button');
+                    item.className = 'template-item';
+                    item.textContent = templateText;
+                    item.onclick = () => { addHomework(templateText); hideTemplateModal(); };
+                    templatesGrid.appendChild(item);
+                });
+            };
+            const initTemplateModal = () => {
+                Object.keys(templates).forEach(category => {
+                    const tab = document.createElement('button');
+                    tab.className = 'tab-btn'; tab.textContent = category; tab.dataset.category = category;
+                    tab.onclick = () => renderTemplatesForCategory(category);
+                    categoryTabs.appendChild(tab);
+                });
+                templateModal.onclick = (e) => { if (e.target === templateModal) hideTemplateModal(); };
+            };
+
+            newHomeworkInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { addHomework(newHomeworkInput.value); } });
+            dateSelector.addEventListener('change', (e) => { currentDate = e.target.value; updateDate(currentDate); loadDataForDate(currentDate); });
+            homeworkList.addEventListener('input', saveData);
+            homeworkList.addEventListener('click', handleHomeworkListChanges);
+            homeworkList.addEventListener('focusin', handleHomeworkListChanges);
+            exportHtmlBtn.addEventListener('click', exportHTML);
+            showTemplateBtn.addEventListener('click', () => { renderTemplatesForCategory("國語文"); showTemplateModal(); });
+            togglePresentationBtn.addEventListener('click', togglePresentation);
+            document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) { isPresentationMode = false; document.body.classList.remove('presentation-mode'); togglePresentationBtn.textContent = '全螢幕展示'; } });
+
+            updateDate(currentDate);
+            loadData();
+            initTemplateModal();
+        });
+    </script>
+</body>
+</html>

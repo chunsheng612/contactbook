@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧聯絡簿 v18.0 (終極完美版)</title>
+    <title>智慧聯絡簿 v19.0 (終極完美版)</title>
     <style>
-        /* CSS v18.0 - 修正 JS 渲染邏輯，最終修正所有問題 */
+        /* CSS v19.0 - 修正直書置中問題，最終修正所有問題 */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=ZCOOL+KuaiLe&display=swap');
-
+        
         @font-face {
           font-family: 'NumericAndLatinFont';
           src: local('Inter'), local('Noto Sans TC'), local('Arial');
@@ -110,13 +110,12 @@
 
         /* --- 直書模式核心樣式 --- */
         .vertical-mode { flex-direction: row-reverse; align-items: flex-start; overflow-x: auto; overflow-y: hidden; gap: 20px; }
-        .vertical-mode .homework-item { display: flex; flex-direction: column; justify-content: space-between; align-items: center; width: auto; min-width: 100px; height: 98%; min-height: 400px; flex-shrink: 0; padding: 20px 15px; }
-        .vertical-mode .item-main-content { display: flex; flex-direction: column; align-items: center; width: 100%; overflow: hidden; }
+        .vertical-mode .homework-item { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; /* 【核心】讓子元素可以填滿寬度 */ width: auto; min-width: 100px; height: 98%; min-height: 400px; flex-shrink: 0; padding: 20px 15px; }
+        .vertical-mode .item-main-content { display: flex; flex-direction: column; align-items: center; /* 【核心】對內部內容置中 */ width: 100%; overflow: hidden; }
         .vertical-mode .item-index { border-bottom: 1px solid var(--text-color-secondary); padding-bottom: 10px; margin-bottom: 15px; }
-        .vertical-mode .item-content { writing-mode: vertical-rl; overflow-y: auto; text-align: right; max-height: 250px; width: 100%; }
-        /* 【核心】智慧渲染出的水平部分樣式 */
+        .vertical-mode .item-content { writing-mode: vertical-rl; text-orientation: mixed; overflow-y: auto; text-align: right; max-height: 250px; width: auto; }
         .vertical-mode .horizontal-in-vertical { writing-mode: horizontal-tb; display: inline-block; text-orientation: mixed; }
-        .vertical-mode .delete-item-btn { opacity: 1; padding: 5px; }
+        .vertical-mode .delete-item-btn { opacity: 1; padding: 5px; align-self: center; /* 【核心】讓叉叉也置中 */ }
         .vertical-mode > p { writing-mode: vertical-rl; text-orientation: upright; margin: 0 auto; align-self: center; }
 
         /* --- 範本 Modal 樣式 --- */
@@ -173,15 +172,14 @@
             const templates = { "國語文": ["國習 L__", "國語習作 p.__-`__`", "甲本 p.__-`__`", "生字本 L__", "語詞本 L__", "國練 第__回", "圈詞 L__ 寫__遍", "背書 L__", "默書 L__", "日記", "閱讀心得"], "數學": ["數習 p.__-`__`", "數練 第__回", "數作 p.__-`__`", "計算練習本 p.__", "數卷訂簽", "應用題 x__"], "英語": ["英習 U__", "英聽", "單字 U__ 寫__遍", "背單字 U__", "句型練習 x__", "課文朗讀 U__"], "社會自然": ["社習 p.__-`__`", "自習 p.__-`__`", "社卷訂簽", "自卷訂簽", "學習單", "報告：__", "觀察紀錄：__"], "通用": ["考卷訂簽", "複習 L__-`__`", "預習 L__", "發回條", "帶__", "做家事", "運動30分鐘", "親子共讀"] };
 
             // --- Data Functions ---
-            const saveData = () => { allData[currentDate] = getCurrentItems(); localStorage.setItem('ultraContactBook_v18_final', JSON.stringify(allData)); };
-            const loadData = () => { const data = JSON.parse(localStorage.getItem('ultraContactBook_v18_final')); if (data) allData = data; loadDataForDate(currentDate); };
+            const saveData = () => { allData[currentDate] = getCurrentItems(); localStorage.setItem('ultraContactBook_v19_final', JSON.stringify(allData)); };
+            const loadData = () => { const data = JSON.parse(localStorage.getItem('ultraContactBook_v19_final')); if (data) allData = data; loadDataForDate(currentDate); };
             const loadDataForDate = (date) => { renderHomeworkList(allData[date] || []); };
             const getCurrentItems = () => Array.from(homeworkList.querySelectorAll('.item-content')).map(el => el.textContent.trim()).filter(text => text);
 
             // --- UI Functions ---
             const updateDate = (dateString) => { const date = new Date(dateString + 'T00:00:00'); const week = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][date.getDay()]; weekDisplay.textContent = week; dateSelector.value = dateString; };
             
-            // 【核心】智慧渲染函數
             const processTextForVertical = (text) => {
                 const regex = /([a-zA-Z0-9\s._-]+)/g;
                 return text.split(regex).map(segment => {
@@ -235,8 +233,8 @@
                 renderHomeworkList(getCurrentItems());
             };
 
-            const applyAndSaveFontSize = (size) => { document.documentElement.style.setProperty('--item-font-size', `${size}em`); localStorage.setItem('fontSizePreference_v18', size); };
-            const loadPreferences = () => { const savedSize = localStorage.getItem('fontSizePreference_v18'); if (savedSize) { fontSizeSlider.value = savedSize; applyAndSaveFontSize(savedSize); } };
+            const applyAndSaveFontSize = (size) => { document.documentElement.style.setProperty('--item-font-size', `${size}em`); localStorage.setItem('fontSizePreference_v19', size); };
+            const loadPreferences = () => { const savedSize = localStorage.getItem('fontSizePreference_v19'); if (savedSize) { fontSizeSlider.value = savedSize; applyAndSaveFontSize(savedSize); } };
             
             // --- Template Modal ---
             const initTemplateModal = () => {
@@ -313,4 +311,4 @@
         });
     </script>
 </body>
-</html>```
+</html>

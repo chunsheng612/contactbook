@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧聯絡簿 v19.0 (終極完美版)</title>
+    <title>智慧聯絡簿 v20.0 (終極完美版)</title>
     <style>
-        /* CSS v19.0 - 修正直書置中問題，最終修正所有問題 */
+        /* CSS v20.0 - 修正匯出與儲存功能，最終修正所有問題 */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=ZCOOL+KuaiLe&display=swap');
         
         @font-face {
@@ -110,12 +110,12 @@
 
         /* --- 直書模式核心樣式 --- */
         .vertical-mode { flex-direction: row-reverse; align-items: flex-start; overflow-x: auto; overflow-y: hidden; gap: 20px; }
-        .vertical-mode .homework-item { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; /* 【核心】讓子元素可以填滿寬度 */ width: auto; min-width: 100px; height: 98%; min-height: 400px; flex-shrink: 0; padding: 20px 15px; }
-        .vertical-mode .item-main-content { display: flex; flex-direction: column; align-items: center; /* 【核心】對內部內容置中 */ width: 100%; overflow: hidden; }
+        .vertical-mode .homework-item { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; width: auto; min-width: 100px; height: 98%; min-height: 400px; flex-shrink: 0; padding: 20px 15px; }
+        .vertical-mode .item-main-content { display: flex; flex-direction: column; align-items: center; width: 100%; overflow: hidden; }
         .vertical-mode .item-index { border-bottom: 1px solid var(--text-color-secondary); padding-bottom: 10px; margin-bottom: 15px; }
-        .vertical-mode .item-content { writing-mode: vertical-rl; text-orientation: mixed; overflow-y: auto; text-align: right; max-height: 250px; width: auto; }
+        .vertical-mode .item-content { writing-mode: vertical-rl; overflow-y: auto; text-align: right; max-height: 250px; width: auto; }
         .vertical-mode .horizontal-in-vertical { writing-mode: horizontal-tb; display: inline-block; text-orientation: mixed; }
-        .vertical-mode .delete-item-btn { opacity: 1; padding: 5px; align-self: center; /* 【核心】讓叉叉也置中 */ }
+        .vertical-mode .delete-item-btn { opacity: 1; padding: 5px; align-self: center; }
         .vertical-mode > p { writing-mode: vertical-rl; text-orientation: upright; margin: 0 auto; align-self: center; }
 
         /* --- 範本 Modal 樣式 --- */
@@ -172,8 +172,8 @@
             const templates = { "國語文": ["國習 L__", "國語習作 p.__-`__`", "甲本 p.__-`__`", "生字本 L__", "語詞本 L__", "國練 第__回", "圈詞 L__ 寫__遍", "背書 L__", "默書 L__", "日記", "閱讀心得"], "數學": ["數習 p.__-`__`", "數練 第__回", "數作 p.__-`__`", "計算練習本 p.__", "數卷訂簽", "應用題 x__"], "英語": ["英習 U__", "英聽", "單字 U__ 寫__遍", "背單字 U__", "句型練習 x__", "課文朗讀 U__"], "社會自然": ["社習 p.__-`__`", "自習 p.__-`__`", "社卷訂簽", "自卷訂簽", "學習單", "報告：__", "觀察紀錄：__"], "通用": ["考卷訂簽", "複習 L__-`__`", "預習 L__", "發回條", "帶__", "做家事", "運動30分鐘", "親子共讀"] };
 
             // --- Data Functions ---
-            const saveData = () => { allData[currentDate] = getCurrentItems(); localStorage.setItem('ultraContactBook_v19_final', JSON.stringify(allData)); };
-            const loadData = () => { const data = JSON.parse(localStorage.getItem('ultraContactBook_v19_final')); if (data) allData = data; loadDataForDate(currentDate); };
+            const saveData = () => { allData[currentDate] = getCurrentItems(); localStorage.setItem('ultraContactBook_v20_final', JSON.stringify(allData)); };
+            const loadData = () => { const data = JSON.parse(localStorage.getItem('ultraContactBook_v20_final')); if (data) allData = data; loadDataForDate(currentDate); };
             const loadDataForDate = (date) => { renderHomeworkList(allData[date] || []); };
             const getCurrentItems = () => Array.from(homeworkList.querySelectorAll('.item-content')).map(el => el.textContent.trim()).filter(text => text);
 
@@ -181,12 +181,12 @@
             const updateDate = (dateString) => { const date = new Date(dateString + 'T00:00:00'); const week = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][date.getDay()]; weekDisplay.textContent = week; dateSelector.value = dateString; };
             
             const processTextForVertical = (text) => {
-                const regex = /([a-zA-Z0-9\s._-]+)/g;
+                const regex = /([a-zA-Z0-9\s._'-]+)/g;
                 return text.split(regex).map(segment => {
                     if (segment.match(regex) && segment.trim() !== '') {
                         return `<span class="horizontal-in-vertical">${segment}</span>`;
                     }
-                    return segment;
+                    return `<span>${segment}</span>`;
                 }).join('');
             };
 
@@ -233,8 +233,8 @@
                 renderHomeworkList(getCurrentItems());
             };
 
-            const applyAndSaveFontSize = (size) => { document.documentElement.style.setProperty('--item-font-size', `${size}em`); localStorage.setItem('fontSizePreference_v19', size); };
-            const loadPreferences = () => { const savedSize = localStorage.getItem('fontSizePreference_v19'); if (savedSize) { fontSizeSlider.value = savedSize; applyAndSaveFontSize(savedSize); } };
+            const applyAndSaveFontSize = (size) => { document.documentElement.style.setProperty('--item-font-size', `${size}em`); localStorage.setItem('fontSizePreference_v20', size); };
+            const loadPreferences = () => { const savedSize = localStorage.getItem('fontSizePreference_v20'); if (savedSize) { fontSizeSlider.value = savedSize; applyAndSaveFontSize(savedSize); } };
             
             // --- Template Modal ---
             const initTemplateModal = () => {
@@ -303,7 +303,43 @@
 
             newHomeworkInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { addHomework(newHomeworkInput.value); } });
             dateSelector.addEventListener('change', (e) => { currentDate = e.target.value; updateDate(currentDate); loadDataForDate(currentDate); });
-            exportHtmlBtn.addEventListener('click', () => { /* Export logic here */ });
+            // 【核心】恢復匯出按鈕功能
+            exportHtmlBtn.addEventListener('click', () => { 
+                 const date = new Date(dateSelector.value + 'T00:00:00');
+                const timestamp = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+                const filename = `聯絡簿_${timestamp}.html`;
+                const dateHTML = dateSelector.value.replace(/-/g, ' / ');
+                const weekHTML = weekDisplay.innerHTML;
+                let homeworkHTML = '';
+                getCurrentItems().forEach((item, index) => { if(item.trim()) homeworkHTML += `<li class="homework-item"><span class="item-index">${index + 1}.</span><span class="item-content">${item}</span></li>`; });
+                
+                const exportedJs = `
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const btn = document.getElementById('fullscreen-btn');
+                            btn.addEventListener('click', () => {
+                                if (!document.fullscreenElement) {
+                                    document.documentElement.requestFullscreen?.();
+                                    btn.textContent = '結束全螢幕';
+                                } else {
+                                    document.exitFullscreen?.();
+                                    btn.textContent = '全螢幕展示';
+                                }
+                            });
+                        });
+                    <\/script>
+                `;
+                const exportedCss = document.querySelector('style').innerHTML
+                    .replace(/url\(['"].*['"]\)/, "radial-gradient(circle, #4a5a44 0%, #2a3a34 100%)")
+                    + `.exported-header{display:flex;justify-content:space-between;align-items:center;}.exported-btn{background:var(--primary-color);color:white;padding:10px 18px;border-radius:10px;border:none;font-size:1em;cursor:pointer;}`;
+
+                const htmlContent = `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>${filename}</title><style>${exportedCss}</style></head><body><div class="container"><div class="exported-header"><h1 class="main-title">智慧聯絡簿</h1><button id="fullscreen-btn" class="exported-btn">全螢幕展示</button></div><div class="card"><div class="card-header"><div id="date-display" style="font-size:2.2em;font-weight:700;">${dateHTML}</div><div id="week-display" style="font-size:1.2em;color:var(--text-color-secondary);">${weekHTML}</div></div><ul class="homework-list">${homeworkHTML}</ul></div></div>${exportedJs}</body></html>`;
+                
+                const link = document.createElement('a');
+                link.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent);
+                link.download = filename;
+                link.click();
+            });
             togglePresentationBtn.addEventListener('click', togglePresentation);
             document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && isPresentationMode) { togglePresentation(); } });
             toggleVerticalBtn.addEventListener('click', toggleVertical);
